@@ -1,0 +1,29 @@
+{
+  "name": "@nicolas_pistillo/here-quick",
+  "version": "1.0.0",
+  "description": "Boost your geolocation and maps functionalities from here",
+  "main": "./here_quick.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nicolas-Pistillo/Here-Quick.git"
+  },
+  "keywords": [
+    "geolocation",
+    "here",
+    "maps",
+    "javascript"
+  ],
+  "author": "Nicolas Pistillo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Nicolas-Pistillo/Here-Quick/issues"
+  },
+  "homepage": "https://github.com/Nicolas-Pistillo/Here-Quick#readme",
+  "dependencies": {
+    
+  }
+}
