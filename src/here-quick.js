@@ -6,8 +6,9 @@ export default class HereQuick {
    * Crea una nueva instancia de Here Quick
    * @param {string} apiKey api key propìa disponible en su plan de Here
    * @param {HTMLElement} mapContainer Elemento HTML donde se renderizara el mapa
+   * @param {boolean} interactive true para indicar si se desea inicializar el mapa de forma interactiva
    */
-  constructor(apiKey, mapContainer) {
+  constructor(apiKey, mapContainer, interactive = true) {
 
     this.platform = new H.service.Platform({
       apikey: apiKey,
@@ -27,6 +28,8 @@ export default class HereQuick {
     this.geoService = this.platform.getSearchService();
 
     this.clusterLayer = false;
+
+    if (interactive) return this.setInteractive();
 
   }
 
