@@ -1,8 +1,10 @@
+import Cluster from "./clusters.js";
+
 export default class HereQuick {
 
   /**
    * Crea una nueva instancia de Here Quick
-   * @param {string} apiKey api key propìa para el uso de Here
+   * @param {string} apiKey api key propìa disponible en su plan de Here
    * @param {HTMLElement} mapContainer Elemento HTML donde se renderizara el mapa
    */
   constructor(apiKey, mapContainer) {
@@ -170,38 +172,30 @@ export default class HereQuick {
     return new H.map.DomIcon(element)
   }
 
-  makeClusters(geoPoints,themeOptions = false) {
+  /**
+   * Crea y retorna un nuevo objeto de tipo Data Point (usado en clusters)
+   * @param {object} coords Un objeto con coordenadas (lat y lng)
+   * @returns {DataPoint} Un objeto de tipo Data Point
+   */
+  makeDataPoint(options) {
+    return new H.clustering.DataPoint(options.lat, options.lng, options.wt, options.data);
+  }
 
-    const ui = this.ui;
+  /**
+   * Crea y retorna un nuevo objeto de tipo Cluster con los datapoints proporcionados
+   * @param {DataPoint[]} datapoints Los datapoints iniciales para crear el cluster
+   * @returns {Cluster} Un objeto de tipo Cluster
+   */
+  makeCluster(datapoints) {    
+      
+    let cluster = new Cluster(datapoints);
 
-    var dataPoints = geoPoints.map(
-      (point) => new H.clustering.DataPoint(point.lat, point.lng, null, point)
-    );
-
-    var clusteredDataProvider = new H.clustering.Provider(dataPoints, {
-      clusteringOptions: {
-        eps: 64,
-        minWeight: 3,
-      },
-    });
-
-    if (themeOptions) {
-
-      var defaultTheme = clusteredDataProvider.getTheme();
-
-      if (themeOptions.theme == 'retreats') {
-
-        new retreatsTheme(
-          ui,clusteredDataProvider,defaultTheme,themeOptions
-        );
-
-      }
-
-    }
-
-    this.clusterLayer = new H.map.layer.ObjectLayer(clusteredDataProvider);
+    this.clusterLayer = cluster.layer;
 
     this.map.addLayer(this.clusterLayer);
+
+    return cluster;
+      
   }
 
   /**
