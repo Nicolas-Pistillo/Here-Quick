@@ -11,8 +11,6 @@ export default class Cluster {
 
         this.layer = new H.map.layer.ObjectLayer(this.provider);
 
-        return this;
-
     }
 
     /**

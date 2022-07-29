@@ -1,6 +1,9 @@
 import Cluster from "./clusters.js";
+import Marker from "./markers.js";
 
 export default class HereQuick {
+
+  storage_prefix = "here_";
 
   /**
    * Crea una nueva instancia de Here Quick
@@ -33,8 +36,6 @@ export default class HereQuick {
 
   }
 
-  storage_prefix = "here_";
-
   /**
    * Retorna la instancia "limpia" generada para el mapa renderizado
    * @returns {object} La instancia del mapa de Here
@@ -44,7 +45,7 @@ export default class HereQuick {
   }
 
   /**
-   * Configura las propiedades basicas para hacer el mapa interactivo
+   * Configura las propiedades basicas para hacer que el mapa interactivo y responda a eventos
    */
   setInteractive() {
 
@@ -56,35 +57,6 @@ export default class HereQuick {
 
     this.ui = H.ui.UI.createDefault(this.map, this.defaultLayers);
 
-    this.initMarkers();
-
-  }
-
-  initMarkers() {
-
-    this.group.addEventListener("tap", (evt) => {
-
-        var markerData = evt.target.getData();
-
-        if (markerData.bubbleData) {
-
-          var bubble = new H.ui.InfoBubble(evt.target.getGeometry(), {
-            content: markerData.bubbleData,
-          });
-
-          this.ui.addBubble(bubble);
-
-          if (markerData.bubbleEvent) {
-
-            bubble.getElement().addEventListener(
-                markerData.bubbleEvent.type,
-                markerData.bubbleEvent.callback
-              );
-          }
-        }
-      },
-      false
-    );
   }
 
   /**
@@ -136,35 +108,12 @@ export default class HereQuick {
    */
   makeMarker(options) {
 
-    const coords = {lat: options.lat, lng: options.lng};
+    let marker = new Marker(this, options);
 
-    if (options.icon) {
+    if (options.center) this.move(marker.coords, 15);
 
-      var marker = new H.map.DomMarker(coords, {
-        icon: new H.map.DomIcon(options.icon),
-      });
-
-    } else var marker = new H.map.Marker(coords);
-
-    marker.setData({
-      bubbleData: options.bubbleData ? options.bubbleData : null,
-      bubbleEvent: options.bubbleEvent ? options.bubbleEvent : null,
-    });
-
-    if (!options.render || options.render != false) this.group.addObject(marker);;
-    
     return marker;
 
-  }
-
-  /**
-   * Crea y retorna un nuevo objeto de icono, especialmente para marcadores
-   * @param {string} icon El icono puede generarse a partir de 
-   * un formato SVG o una URL de imagen local o remota 
-   * @returns {object} Un objeto de tipo icono
-   */
-  makeIcon(icon) {
-    return new H.map.Icon(icon);
   }
 
   /**
@@ -228,26 +177,27 @@ export default class HereQuick {
 
     this.map.addObject(this.group);
 
-    this.initMarkers();
   }
 
   /***** LocalStorage Utilities *****/
 
   checkInStorage(key) {
+
     if (localStorage.getItem(this.storage_prefix + key) != null) return true;
 
     return false;
   }
 
   getFromStorage(key, isJson = true) {
-    if (isJson) {
-      return JSON.parse(localStorage.getItem(this.storage_prefix + key));
-    }
+
+    if (isJson) return JSON.parse(localStorage.getItem(this.storage_prefix + key));
 
     return localStorage.getItem(this.storage_prefix + key);
+
   }
 
   setInStorage(key, data, returnJson = true) {
+
     localStorage.setItem(this.storage_prefix + key, data);
 
     if (returnJson) return this.getFromStorage(key);
@@ -258,4 +208,5 @@ export default class HereQuick {
   deleteFromStorage(key) {
     localStorage.removeItem(this.storage_prefix + key);
   }
+
 }
