@@ -90,6 +90,26 @@ export default class HereQuick {
   }
 
   /**
+   * Emula el metodo geoClick pero haciendo un console.log de las coordenadas donde se hizo click
+   * en lugar de retornarlas en un callback (solo para pruebas)
+   */
+  testGeoclicks() {
+
+    this.map.addEventListener('tap', (evt) => {
+
+      const x = evt.currentPointer.viewportX;
+      const y = evt.currentPointer.viewportY;
+
+      const coords = this.map.screenToGeo(x, y);
+
+      console.log(coords);
+
+    })
+
+
+  }
+
+  /**
    * Realiza una llamada al servicio de Geocode integrado, ver su propia documentación en:
    * https://developer.here.com/documentation/maps/3.1.30.17/dev_guide/topics/geocoding.html
    * @param {string} address El string de dirección a buscar
@@ -151,6 +171,11 @@ export default class HereQuick {
       
   }
 
+  /**
+   * Renderiza y retorna un Circulo en el mapa
+   * @param {object} options El ojeto de opciones para el circulo
+   * @returns 
+   */
   makeCircle(options) {
 
     const circle =  new H.map.Circle({lat: options.lat, lng: options.lng}, options.radius ?? 2000, {
@@ -163,6 +188,31 @@ export default class HereQuick {
     this.group.addObject(circle);
 
     return circle;
+
+  }
+
+  /**
+   * Renderiza y retorna un poligono recibiendo un array de coordenadas que representan las esquinas del mismo
+   * @param {object[]} coordinates Un array de objetos de tipo coordenada (lat y lng)
+   * @param {object} options Un objeto de opciones para customizar el poligono
+   * @returns 
+   */
+  makePolygon(coordinates, options = {}) {
+
+    const lineString = new H.geo.LineString();
+
+    coordinates.forEach(coordinate => lineString.pushPoint(coordinate));
+
+    const polygon = new H.map.Polygon(lineString, {
+      style: options.style,
+      data: options.data
+    });
+
+    if (options.click) polygon.addEventListener('tap', (evt) => options.click(polygon.getData()));
+
+    this.map.addObject(polygon);
+
+    return polygon;
 
   }
 
