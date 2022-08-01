@@ -9,7 +9,8 @@ export default class HereQuick {
    * Crea una nueva instancia de Here Quick
    * @param {string} apiKey api key propìa disponible en su plan de Here
    * @param {HTMLElement} mapContainer Elemento HTML donde se renderizara el mapa
-   * @param {boolean} interactive true para indicar si se desea inicializar el mapa de forma interactiva
+   * @param {boolean} interactive true (por defecto) para indicar si se desea inicializar 
+   * el mapa de forma interactiva
    */
   constructor(apiKey, mapContainer, interactive = true) {
 
@@ -150,6 +151,21 @@ export default class HereQuick {
       
   }
 
+  makeCircle(options) {
+
+    const circle =  new H.map.Circle({lat: options.lat, lng: options.lng}, options.radius ?? 2000, {
+      data: options.data,
+      style: options.style
+    });
+
+    if (options.click) circle.addEventListener('tap', (evt) => options.click(circle.getData()));
+
+    this.group.addObject(circle);
+
+    return circle;
+
+  }
+
   /**
    * Remueve objetos en el grupo actual del mapa
    * @param {object|array} items El objeto o los objetos a eliminar del grupo
@@ -157,9 +173,15 @@ export default class HereQuick {
    */
   remove(items) {
 
-    if (Array.isArray(items)) return this.group.removeObjects(items);
+      if (!Array.isArray(items)) 
+        return this.group.removeObject(items.constructor.name === 'Marker' ? items.instance : items);
 
-    return this.group.removeObject(items);
+      items.forEach(item => {
+
+        this.group.removeObject(item.constructor.name === 'Marker' ? item.instance : item);
+
+      });
+
   }
 
   /**
