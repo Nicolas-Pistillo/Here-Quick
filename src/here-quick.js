@@ -12,7 +12,7 @@ export default class HereQuick {
    * @param {boolean} interactive true (por defecto) para indicar si se desea inicializar 
    * el mapa de forma interactiva
    */
-  constructor(apiKey, mapContainer, interactive = true) {
+  constructor(apiKey, mapContainer, center = false, interactive = true) {
 
     this.platform = new H.service.Platform({
       apikey: apiKey,
@@ -22,6 +22,7 @@ export default class HereQuick {
 
     this.map = new H.Map(mapContainer, this.defaultLayers.vector.normal.map, {
       zoom: 10,
+      center: center,
       pixelRatio: window.devicePixelRatio || 1,
     });
 
@@ -29,11 +30,13 @@ export default class HereQuick {
 
     this.map.addObject(this.group);
 
-    this.geoService = this.platform.getSearchService();
+    this.geocodeService = this.platform.getSearchService();
+
+    this.router = this.platform.getRoutingService(null, 8);
 
     this.clusterLayer = false;
 
-    if (interactive) return this.setInteractive();
+    if (interactive) this.setInteractive();
 
   }
 
@@ -117,7 +120,26 @@ export default class HereQuick {
    * @returns {object|null} La respuesta HTTP del servicio
    */
   geocode(address, callback) {
-    return this.geoService.geocode({q: address}, response => callback(response));
+    return this.geocodeService.geocode({q: address}, response => callback(response));
+  }
+
+  /**
+   *  Realiza una llamada al servicio de Geocode reverso integrado, ver su propia documentación en:
+   *  https://developer.here.com/documentation/examples/maps-js/services/reverse-geocode-an-address-from-location
+   * @param {object} options El objeto de coordenadas para revelar datos de la ubicacion/direccion
+   * @param {function} callback Callback que recibe la respuesta del servicio
+   * @returns {object|null} La respuesta HTTP del servicio
+   */
+  reverseGeocode(options, callback) {
+
+    const params = {
+      at: `${options.lat},${options.lng}`,
+      mode: options.mode ?? 'retrieveAddresses',
+      maxresults: options.maxresult ?? 1
+    }
+
+    return this.geocodeService.reverseGeocode(params, res => callback(res), (err) => console.log(err));
+
   }
 
   /**
@@ -213,6 +235,30 @@ export default class HereQuick {
     this.map.addObject(polygon);
 
     return polygon;
+
+  }
+
+  /**
+   * Renderiza la vista de una ruta con marcadores de origen y destino según una seccion de ruta,
+   * esta seccion de ruta esta disponible en la repsuesta del servicio de routing de Here, ver su doc aqui:
+   * https://developer.here.com/documentation/maps/3.1.32.0/dev_guide/topics/routing.html
+   * @param {object} routeSection La seccion de ruta
+   * @param {object} options Un objeto de opciones de personalizacion para la ruta
+   */
+  makeRouteView(routeSection, options = {}) {
+
+    const linestring = H.geo.LineString.fromFlexiblePolyline(routeSection.polyline);
+  
+    const routeLine = new H.map.Polyline(linestring, {
+      style: { strokeColor: options.color ?? 'blue', lineWidth: options.lineWidth ?? 3 }
+    });
+
+    this.makeMarker(routeSection.departure.place.location).render();  // Marcador origen
+    this.makeMarker(routeSection.arrival.place.location).render();    // Marcador destino
+
+    this.group.addObject(routeLine);
+
+    this.map.getViewModel().setLookAtData({bounds: routeLine.getBoundingBox()});
 
   }
 
